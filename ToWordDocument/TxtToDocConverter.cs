@@ -31,7 +31,10 @@ namespace ToWordDocument
 
             if (txtFile.Exists)
             {
-                if (_allowedInputExtentions.Contains(txtFile.Extension.ToLower()))
+                //if (_allowedInputExtentions.Contains(txtFile.Extension.ToLower()))
+
+                //TODO: remove this line and uncomment upperline
+                if (txtFile.Extension.ToLower() != ".doc" && txtFile.Extension.ToLower() != ".docx")
                 {
                     string docxfile = findAllowableDocxName(txtFile);
                     SaveAsFormattedDocX(txtFile.FullName, docxfile);
@@ -75,6 +78,10 @@ namespace ToWordDocument
             //string[] lines = File.ReadAllLines(textFile,Encoding.GetEncoding(1251));
             string[] lines = File.ReadAllLines(textFile);
 
+            bool DOSstyle = IsDOSstyle(lines);
+
+
+
 
             // Create a Wordprocessing document. 
             using (WordprocessingDocument myDoc = WordprocessingDocument.Create(docName, WordprocessingDocumentType.Document))
@@ -84,27 +91,72 @@ namespace ToWordDocument
                 //Create DOM tree for simple document. 
                 mainPart.Document = new Document();
                 Body body = new Body();
-                foreach (string l in lines)
+
+                StringBuilder textParagraph = new StringBuilder();
+                Paragraph paragraph = new Paragraph();
+
+
+
+                if (DOSstyle)
                 {
-                    string line = ReplaceHexadecimalSymbols(l);
 
-                    Paragraph p = new Paragraph();
-                    Run r = new Run();
-                    Text t = new Text(line);
-                    //Append elements appropriately. 
-                    r.Append(t);
-                    p.Append(r);
-                    p.ParagraphProperties = new ParagraphProperties();
-                    if (JustifyBothSides)
+                    int lineNumber = 0;
+                    int countLines = lines.Count();
+
+                    foreach (string l in lines)
                     {
-                        p.ParagraphProperties.Justification = new Justification();
-                        p.ParagraphProperties.Justification.Val = JustificationValues.Both;
-                    }
-                    p.ParagraphProperties.Indentation = new Indentation() { FirstLine = (IndentBeginParagraph * 1000).ToString() };
-                    p.ParagraphProperties.SpacingBetweenLines = new SpacingBetweenLines() { After = (AfterParagraph * 1000).ToString() };
+                        lineNumber++;
+                        string line = ReplaceHexadecimalSymbols(l);
+                        if (line == string.Empty)// end of paragraph
+                        {
+                            paragraph = FormatParagraphDOSStyle(textParagraph.ToString());
+                            body.Append(paragraph);
+                            textParagraph = new StringBuilder();
+                        }
+                        else // add to paragraph
+                        {
+                            if (line.Last() == '.')
+                            {
+                                line = line + " ";
+                            }
 
-                    body.Append(p);
+                            textParagraph.Append(line);
+
+                            // if line ends on symbol and defis then do not insert a space
+                            if (line.Last() == '-' && line[line.Length - 2] != ' ')
+                            {
+                                //do not insert a space
+                            }
+                            // if line ends ."
+                            else if (line.Last() == '\"' && line[line.Length - 2] == '.')
+                            {
+                                textParagraph.Append("  ");
+                            }
+                            else
+                                // space after line in usual case
+                                textParagraph.Append(" ");
+
+                            //if last line
+                            if (lineNumber == countLines)
+                            {
+                                paragraph = FormatParagraphDOSStyle(textParagraph.ToString());
+                                body.Append(paragraph);
+                            }
+
+                        }
+                    }
                 }
+                else
+                {
+                    foreach (string l in lines)
+                    {
+                        paragraph = FormatParagraphNormalStyle(l);
+                        body.Append(paragraph);
+                    }
+                }
+
+
+
 
                 mainPart.Document.Append(body);
                 // Save changes to the main document part. 
@@ -114,6 +166,15 @@ namespace ToWordDocument
             }
 
         }
+
+        static bool IsDOSstyle(string[] lines)
+        {
+            if (lines.Any(x => x.Length > 70))
+                return false;
+
+            return true;
+        }
+
 
         static string ReplaceHexadecimalSymbols(string txt)
         {
@@ -125,6 +186,65 @@ namespace ToWordDocument
 
 
         }
+
+        Paragraph FormatParagraphDOSStyle(string text)
+        {
+            int spacesBefore = text.TakeWhile(Char.IsWhiteSpace).Count();
+            text = text.TrimStart(' ');
+
+            Paragraph p = new Paragraph();
+            Run r = new Run();
+            Text t = new Text(text);
+            //Append elements appropriately. 
+            r.Append(t);
+            p.Append(r);
+            p.ParagraphProperties = new ParagraphProperties();
+
+            if (spacesBefore < 6)
+            {
+                p.ParagraphProperties.Justification = new Justification();
+                p.ParagraphProperties.Justification.Val = JustificationValues.Both;
+            }
+            else
+            {
+                int spacesAfter = 70 - spacesBefore - text.Length;
+                // spaces before and after are equal or close to that.
+                if (text.Length <= 70 && Math.Abs(spacesBefore - spacesAfter) < 5)
+                {
+                    p.ParagraphProperties.Justification = new Justification();
+                    p.ParagraphProperties.Justification.Val = JustificationValues.Center;
+                }
+                // right jusitfied
+                else
+                {
+                    p.ParagraphProperties.Justification = new Justification();
+                    p.ParagraphProperties.Justification.Val = JustificationValues.Right;
+                }
+            }
+
+            p.ParagraphProperties.Indentation = new Indentation() { FirstLine = (IndentBeginParagraph * 1000).ToString() };
+            p.ParagraphProperties.SpacingBetweenLines = new SpacingBetweenLines() { After = (AfterParagraph * 1000).ToString() };
+            return p;
+        }
+
+
+        Paragraph FormatParagraphNormalStyle(string text)
+        {
+            Paragraph p = new Paragraph();
+            Run r = new Run();
+            Text t = new Text(text);
+            //Append elements appropriately. 
+            r.Append(t);
+            p.Append(r);
+            p.ParagraphProperties = new ParagraphProperties();
+            p.ParagraphProperties.Justification = new Justification();
+            p.ParagraphProperties.Justification.Val = JustificationValues.Both;
+            p.ParagraphProperties.Indentation = new Indentation() { FirstLine = (IndentBeginParagraph * 1000).ToString() };
+            p.ParagraphProperties.SpacingBetweenLines = new SpacingBetweenLines() { After = (AfterParagraph * 1000).ToString() };
+            return p;
+        }
+
+
 
         // MS Word needed
         //public void Convert(string inputFileName)
