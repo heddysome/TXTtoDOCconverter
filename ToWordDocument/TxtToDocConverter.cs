@@ -23,7 +23,8 @@ namespace ToWordDocument
         }
         public double IndentBeginParagraph { get; set; }
         public double AfterParagraph { get; set; }
-        public bool JustifyBothSides { get; set; }
+        public double FontSize { get; set; }
+        public double SpaceBtwLines { get; set; }
 
         public void ConvertToDoc(string fileName, bool deleteOrigin = false)
         {
@@ -222,8 +223,32 @@ namespace ToWordDocument
                 }
             }
 
+
+
             p.ParagraphProperties.Indentation = new Indentation() { FirstLine = (IndentBeginParagraph * 1000).ToString() };
-            p.ParagraphProperties.SpacingBetweenLines = new SpacingBetweenLines() { After = (AfterParagraph * 1000).ToString() };
+            p.ParagraphProperties.SpacingBetweenLines = new SpacingBetweenLines()
+            {
+                Line = new StringValue((10 * 2 * FontSize * SpaceBtwLines).ToString()),
+                LineRule = LineSpacingRuleValues.Auto,
+                After = (AfterParagraph * 1000).ToString()
+            };
+
+
+            //FONT SIZE
+            RunProperties runProp = new RunProperties(); 
+            // Create run properties.
+            // RunFonts runFont = new RunFonts();           // Create font
+            // runFont.Ascii = "Arial";   
+            // runProp.Append(runFont);
+            // Specify font family
+
+            FontSize size = new FontSize();
+            size.Val = new StringValue((FontSize * 2).ToString());  // 48 half-point font size
+            runProp.Append(size);
+
+            r.PrependChild<RunProperties>(runProp);
+
+            //END
             return p;
         }
 
@@ -239,8 +264,32 @@ namespace ToWordDocument
             p.ParagraphProperties = new ParagraphProperties();
             p.ParagraphProperties.Justification = new Justification();
             p.ParagraphProperties.Justification.Val = JustificationValues.Both;
+
+
+
             p.ParagraphProperties.Indentation = new Indentation() { FirstLine = (IndentBeginParagraph * 1000).ToString() };
-            p.ParagraphProperties.SpacingBetweenLines = new SpacingBetweenLines() { After = (AfterParagraph * 1000).ToString() };
+            p.ParagraphProperties.SpacingBetweenLines = new SpacingBetweenLines()
+            {
+                Line = new StringValue((10 * 2 * FontSize * SpaceBtwLines).ToString()),
+                LineRule = LineSpacingRuleValues.Auto,
+                After = (AfterParagraph * 1000).ToString()
+            };
+
+
+            //FONT SIZE
+            RunProperties runProp = new RunProperties();
+            // Create run properties.
+            // RunFonts runFont = new RunFonts();           // Create font
+            // runFont.Ascii = "Arial";   
+            // runProp.Append(runFont);
+            // Specify font family
+
+            FontSize size = new FontSize();
+            size.Val = new StringValue((FontSize * 2).ToString());  // 48 half-point font size
+            runProp.Append(size);
+
+            r.PrependChild<RunProperties>(runProp);
+
             return p;
         }
 

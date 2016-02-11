@@ -110,7 +110,7 @@ namespace ToWordDocument
                 SaveSettingsToFile();
                 converterExecuter.Start();
             }
-            catch(InvalidDataException e)
+            catch (InvalidDataException e)
             {
                 Invoke((MethodInvoker)delegate
                 {
@@ -178,16 +178,6 @@ namespace ToWordDocument
 
 
 
-        private void chooseFolderButton_Click(object sender, EventArgs e)
-        {
-            DialogResult result = folderBrowserDialog1.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                tbFolderPath.Text = folderBrowserDialog1.SelectedPath;
-                ReadSettingFromUI();
-                SaveSettingsToFile();
-            }
-        }
 
         void ShowMessage(string message)
         {
@@ -223,11 +213,10 @@ namespace ToWordDocument
                 // default settings
                 settings = new TxtDocConverterSettings();
                 settings.AbiwordPath = @"AbiWord\bin\AbiWord.exe";
-                settings.WorkDirectory = Environment.CurrentDirectory;
                 settings.FirstLineIndentation = 0.5;
-                settings.AfterParagraphIndentation = 0.3;
-                settings.JustifyBothSides = true;
-                settings.IncludeSubfolders = false;
+                settings.AfterParagraphIndentation = 0.6;
+                settings.FontSize = 14;
+                settings.SpaceBetweenLines = 1.0;
 
                 SaveSettingsToFile();
             }
@@ -238,41 +227,29 @@ namespace ToWordDocument
 
         void ReadSettingFromUI()
         {
-            settings.WorkDirectory = folderBrowserDialog1.SelectedPath;
             settings.FirstLineIndentation = (double)NUDFirstLineIndentaion.Value;
             settings.AfterParagraphIndentation = (double)NUDAfterParagraphIndentation.Value;
-            settings.JustifyBothSides = cbJustifyBothSides.Checked;
-            settings.IncludeSubfolders = cbIncludeSubfolders.Checked;
-
+            settings.FontSize = (double)nudFontSize.Value;
+            settings.SpaceBetweenLines = (double)nudSpaceBtwLines.Value;
         }
 
         void ApplySettingsToUI()
         {
-            //tbFolderPath.Text = settings.WorkDirectory;
-            folderBrowserDialog1.SelectedPath = settings.WorkDirectory;
             NUDFirstLineIndentaion.Value = (decimal)settings.FirstLineIndentation;
             NUDAfterParagraphIndentation.Value = (decimal)settings.AfterParagraphIndentation;
-            cbJustifyBothSides.Checked = settings.JustifyBothSides;
-            cbIncludeSubfolders.Checked = settings.IncludeSubfolders;
+            nudFontSize.Value = (decimal)settings.FontSize;
+            nudSpaceBtwLines.Value = (decimal)settings.SpaceBetweenLines;
         }
 
-        void RememberSetttings()
-        {
-            settings.AbiwordPath = converterExecuter.DocConverter.AbiWordPath;
-            settings.AfterParagraphIndentation = converterExecuter.DocConverter.AfterParagraph;
-            settings.FirstLineIndentation = converterExecuter.DocConverter.IndentBeginParagraph;
-            settings.JustifyBothSides = converterExecuter.DocConverter.JustifyBothSides;
-            settings.WorkDirectory = folderBrowserDialog1.SelectedPath;
-        }
+
 
         void ApplySettings()
         {
             converterExecuter.DocConverter.AbiWordPath = settings.AbiwordPath;
             converterExecuter.DocConverter.AfterParagraph = settings.AfterParagraphIndentation;
             converterExecuter.DocConverter.IndentBeginParagraph = settings.FirstLineIndentation;
-            converterExecuter.DocConverter.JustifyBothSides = settings.JustifyBothSides;
-            converterExecuter.WorkDirectory = settings.WorkDirectory;
-            converterExecuter.IncludeSubfolders = settings.IncludeSubfolders;
+            converterExecuter.DocConverter.FontSize = settings.FontSize;
+            converterExecuter.DocConverter.SpaceBtwLines = settings.SpaceBetweenLines;
         }
 
         private void btnStop_Click(object sender, EventArgs e)
@@ -289,20 +266,19 @@ namespace ToWordDocument
         {
             NUDAfterParagraphIndentation.Enabled = false;
             NUDFirstLineIndentaion.Enabled = false;
-            btnChooseFolder.Enabled = false;
             btnRunConvertation.Enabled = false;
-            cbIncludeSubfolders.Enabled = false;
-            cbJustifyBothSides.Enabled = false;
+            nudFontSize.Enabled = false;
+            nudSpaceBtwLines.Enabled = false;
+
 
         }
         private void UnBlockPage()
         {
             NUDAfterParagraphIndentation.Enabled = true;
             NUDFirstLineIndentaion.Enabled = true;
-            btnChooseFolder.Enabled = true;
             btnRunConvertation.Enabled = true;
-            cbIncludeSubfolders.Enabled = true;
-            cbJustifyBothSides.Enabled = true;
+            nudFontSize.Enabled = true;
+            nudSpaceBtwLines.Enabled = true;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

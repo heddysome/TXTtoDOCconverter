@@ -13,7 +13,6 @@ namespace ToWordDocument
         {
             public static string[] inputExtentions { get; set; } = { ".txt" };
 
-            public string WorkDirectory = null;
             public string[] Directories = new string[] { };
             public string[] Files = new string[] { };
 
@@ -95,13 +94,9 @@ namespace ToWordDocument
                 }
             }
 
-            public event EventHandler SearchCompleted;
+            
         }
-        public string WorkDirectory
-        {
-            get { return _fileSearch.WorkDirectory; }
-            set { _fileSearch.WorkDirectory = value; }
-        }
+
         public string[] Directories
         {
             set { _fileSearch.Directories = value; }
